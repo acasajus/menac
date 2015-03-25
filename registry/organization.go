@@ -11,6 +11,7 @@ type Organization struct {
 	db.Record
 
 	Handle string `db:"pk"`
+	Groups []string
 }
 
 func NewOrg(db db.DB) *Organization {
@@ -19,6 +20,10 @@ func NewOrg(db db.DB) *Organization {
 
 func (o *Organization) Create() error {
 	return o.GetDB().CreateNewRecord(o)
+}
+
+func (g *Organization) Store() error {
+	return g.GetDB().ReplaceRecord(g)
 }
 
 func (o *Organization) Validate() error {
@@ -46,4 +51,42 @@ func (o *Organization) Users() ([]*User, error) {
 		users = append(users, u)
 	}
 	return users, nil
+}
+
+func (o *Organization) CreateGroup(name string) (*Group, error) {
+	for _, n := range o.Groups {
+		if n == name {
+			return nil, errors.New("Group already exists")
+		}
+	}
+	g := &Group{Name: name, Organization: o.Handle}
+	o.GetDB().LinkRecordToDB(g)
+	if err := o.GetDB().CreateNewRecord(g); err != nil {
+		return nil, err
+	}
+	if o.Groups == nil {
+		o.Groups = make([]string, 0, 1)
+	}
+	o.Groups = append(o.Groups, name)
+	if err := o.Store(); err != nil {
+		o.GetDB().DeleteRecord(g)
+		return nil, err
+	}
+	return g, nil
+}
+
+func (o *Organization) GetGroup(name string) (*Group, error) {
+	g := &Group{Name: name, Organization: o.Handle}
+	if err := o.GetDB().GetRecord(g.GetPrimaryKey(), g); err != nil {
+		return nil, err
+	}
+	return g, nil
+}
+
+func (o *Organization) GetUser(handle string) (*User, error) {
+	u := &User{Handle: handle, Organization: o.Handle}
+	if err := o.GetDB().GetRecord(u.GetPrimaryKey(), u); err != nil {
+		return nil, err
+	}
+	return u, nil
 }

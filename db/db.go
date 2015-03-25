@@ -78,6 +78,7 @@ func (d *db) CreateNewRecord(r RecordObject) error {
 	if err := d.client.PutBins(wPolicy, key, bins...); err != nil {
 		return err
 	}
+	r.setGeneration(r.GetGeneration() + 1)
 	r.setStored()
 	return nil
 }
@@ -118,7 +119,11 @@ func (d *db) ReplaceRecord(r RecordObject) error {
 	wPolicy.RecordExistsAction = as.REPLACE_ONLY
 	wPolicy.GenerationPolicy = as.EXPECT_GEN_EQUAL
 
-	return d.client.PutBins(wPolicy, key, bins...)
+	err = d.client.PutBins(wPolicy, key, bins...)
+	if err == nil {
+		r.setGeneration(r.GetGeneration() + 1)
+	}
+	return err
 }
 
 func (d *db) DeleteRecord(r RecordObject) (bool, error) {

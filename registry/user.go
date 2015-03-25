@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"errors"
+	"fmt"
 
 	"github.com/acasajus/menac/db"
 	"golang.org/x/crypto/scrypt"
@@ -17,11 +18,15 @@ const (
 type User struct {
 	db.Record
 
-	Handle       string `db:"pk"`
+	Handle       string
 	Email        []string
 	Name         string
 	Password     []byte
-	Organization string `db:"index"`
+	Organization string `db:"indexed"`
+}
+
+func (u *User) GetPrimaryKey() []byte {
+	return []byte(fmt.Sprintf("%s:%s", u.Organization, u.Handle))
 }
 
 func (u *User) Validate() error {
