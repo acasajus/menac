@@ -1,0 +1,26 @@
+
+syntax = "proto3";
+
+package coord;
+
+service Coordinate {
+	//Process a raft step
+	rpc EmitRaftStep(stream RaftStep) returns (stream RaftStep) {};
+	//Register into the cluster and get a list of peers
+	rpc Register(PeerInfo) returns (PeerInfoList) {};
+}
+
+message PeerInfo {
+	uint64 Id = 1;
+	string Address = 2;
+}
+
+message PeerInfoList{
+	repeated PeerInfo peers = 1;
+}
+
+message RaftStep {
+	bytes data = 1;
+}
+
+message ProcessRaftResponse {}
