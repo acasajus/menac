@@ -18,6 +18,8 @@ type StoredObject struct {
 	Type         string
 	Hash         string
 	Metadata     map[string]string
+
+	store *ObjectStore
 }
 
 func (so *StoredObject) Create() error {

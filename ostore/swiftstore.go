@@ -6,7 +6,7 @@ import (
 	"github.com/ncw/swift"
 )
 
-type Swift struct {
+type SwiftStore struct {
 	conn *swift.Connection
 }
 
@@ -20,7 +20,7 @@ const (
 	SWIFT_AUTH_TOKEN  = "auth_token"
 )
 
-func (s *Swift) Initialize(c map[string]string) error {
+func (s *SwiftStore) Initialize(c map[string]string) error {
 	s.conn = &swift.Connection{
 		AuthUrl:    c[SWIFT_AUTH_URL],
 		UserName:   c[SWIFT_USER_NAME],
@@ -39,7 +39,7 @@ func (s *Swift) Initialize(c map[string]string) error {
 	return nil
 }
 
-func (s *Swift) Put(so *StoredObject, data io.Reader) error {
+func (s *SwiftStore) Put(so *StoredObject, data io.Reader) error {
 	_, h, err := s.conn.Object(so.Type, so.Hash)
 	switch err {
 	case swift.ObjectNotFound:
@@ -62,7 +62,7 @@ func (s *Swift) Put(so *StoredObject, data io.Reader) error {
 	return nil
 }
 
-func (s *Swift) Get(so *StoredObject, data io.Writer) error {
+func (s *SwiftStore) Get(so *StoredObject, data io.Writer) error {
 	h, err := s.conn.ObjectGet(so.Type, so.Hash, data, true, swift.Headers(so.Metadata))
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func (s *Swift) Get(so *StoredObject, data io.Writer) error {
 	return nil
 }
 
-func (s *Swift) Delete(so *StoredObject) error {
+func (s *SwiftStore) Delete(so *StoredObject) error {
 	err := s.conn.ObjectDelete(so.Type, so.Hash)
 	if err == swift.ObjectNotFound {
 		return nil

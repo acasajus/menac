@@ -9,6 +9,7 @@ import (
 
 const (
 	STORE_TYPE_SWIFT = iota
+	STORE_TYPE_S3    = iota
 )
 
 type ObjectStore struct {
@@ -46,5 +47,6 @@ func (os *ObjectStore) NewObject() *StoredObject {
 	return os.GetDB().LinkRecordToDB(&StoredObject{
 		Organization: os.Organization,
 		StoreName:    os.Name,
+		store:        os,
 	}).(*StoredObject)
 }
