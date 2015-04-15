@@ -1,7 +1,6 @@
 package ostore
 
 import (
-	"fmt"
 	"io"
 	"strings"
 	"time"
@@ -43,12 +42,8 @@ func (s *S3Store) Initialize(c map[string]string) error {
 	return s.bucket.PutBucket(s3.Private)
 }
 
-func getPath(so *StoredObject) string {
-	return fmt.Sprintf("%s/%s", so.Type, so.Hash)
-}
-
 func (s *S3Store) Put(so *StoredObject, data io.Reader, length int64) error {
-	path := getPath(so)
+	path := so.getPath()
 	_, err := s.bucket.Head(path)
 	if err != nil && !strings.Contains(err.Error(), "404") {
 		return err
@@ -57,6 +52,9 @@ func (s *S3Store) Put(so *StoredObject, data io.Reader, length int64) error {
 	headers := map[string][]string{}
 	if so.Expiration.After(time.Now()) {
 		headers["X-Expiration"] = []string{so.Expiration.Format(time.RFC3339)}
+	}
+	for k, v := range so.Metadata {
+		headers["X-Object-"+k] = []string{v}
 	}
 	if err := s.bucket.PutReaderHeader(path, hr, length, headers, s3.Private); err != nil {
 		return err
@@ -70,7 +68,7 @@ func (s *S3Store) Put(so *StoredObject, data io.Reader, length int64) error {
 }
 
 func (s *S3Store) Get(so *StoredObject, data io.Writer) error {
-	r, err := s.bucket.GetReader(getPath(so))
+	r, err := s.bucket.GetReader(so.getPath())
 	if err != nil {
 		if strings.Contains(err.Error(), "404") {
 			return ErrNotExists
@@ -82,7 +80,7 @@ func (s *S3Store) Get(so *StoredObject, data io.Writer) error {
 }
 
 func (s *S3Store) Delete(so *StoredObject) error {
-	err := s.bucket.Del(getPath(so))
+	err := s.bucket.Del(so.getPath())
 	if err != nil && strings.Contains(err.Error(), "404") {
 		return ErrNotExists
 	}

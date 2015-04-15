@@ -2,6 +2,7 @@ package ostore
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/acasajus/menac/db"
@@ -47,4 +48,8 @@ func (so *StoredObject) Validate() error {
 		return errors.New("Empty hash")
 	}
 	return nil
+}
+
+func (so *StoredObject) getPath() string {
+	return fmt.Sprintf("%s/%s", so.Type, so.Hash)
 }
