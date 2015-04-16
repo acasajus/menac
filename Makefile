@@ -18,3 +18,6 @@ protobuf: $(PBGOFILES)
 
 %.pb.go: %.proto
 	$(PROTOC) --proto_path=$(ROOTDIR) --go_out=plugins=grpc:.  $<
+
+binstatic:
+	go-bindata -debug=true -pkg=binstatic -o web/binstatic/data.go $(shell find . -type d -name static -exec echo {}/... \;)
